@@ -1,9 +1,10 @@
 package com.maharshi.bollywood_game_spring_boot.service;
 
 
-import com.maharshi.bollywood_game_spring_boot.model.User;
+import com.maharshi.bollywood_game_spring_boot.model.UserVo;
 import com.maharshi.bollywood_game_spring_boot.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -16,18 +17,25 @@ public class UserServiceImp implements UserService {
     private UserRepository userRepository;
 
     @Override
-    public void insertUser(User user) {
-        userRepository.save(user);
+    public void insertUser(UserVo userVo) {
+        userRepository.save(userVo);
     }
 
     @Override
-    public User findByUserName(String username) {
+    public UserVo findByUserName(String username) {
         return this.userRepository.findByUsername(username).get(0);
     }
 
     @Override
-    public User getCurrentUser() {
-        return this.findByUserName(SecurityContextHolder.getContext().getAuthentication().getName());
+    public UserVo getCurrentUser() {
+       try{
+           UserVo userVo=new UserVo();
+           userVo.setUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+           return userVo;
+       } catch (Exception e) {
+           System.out.println(e);
+           return null;
+       }
     }
 
 }

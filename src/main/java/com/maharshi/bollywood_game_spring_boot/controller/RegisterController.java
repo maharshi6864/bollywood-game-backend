@@ -1,7 +1,7 @@
 package com.maharshi.bollywood_game_spring_boot.controller;
 
 import com.maharshi.bollywood_game_spring_boot.dto.Response;
-import com.maharshi.bollywood_game_spring_boot.model.User;
+import com.maharshi.bollywood_game_spring_boot.model.UserVo;
 import com.maharshi.bollywood_game_spring_boot.service.RegisterUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,11 +23,11 @@ public class RegisterController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("")
-    public ResponseEntity<Response> register(@RequestBody User user) {
-        user.setRole("USER");
-        user.setStatus(false);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return new ResponseEntity<Response>(registerUserService.registerUser(user), HttpStatus.OK);
+    public ResponseEntity<Response> register(@RequestBody UserVo userVo) {
+        userVo.setRole("USER");
+        userVo.setStatus(false);
+        userVo.setPassword(passwordEncoder.encode(userVo.getPassword()));
+        return new ResponseEntity<Response>(registerUserService.registerUser(userVo), HttpStatus.OK);
     }
 
     @PostMapping("/checkUsernameAvail")
@@ -41,8 +41,8 @@ public class RegisterController {
     }
 
     @PostMapping("/resendOtp")
-    public ResponseEntity<Response> resendOtp(@RequestBody User user) {
-        return new ResponseEntity<Response>(registerUserService.resendOtp(user), HttpStatus.OK);
+    public ResponseEntity<Response> resendOtp(@RequestBody UserVo userVo) {
+        return new ResponseEntity<Response>(registerUserService.resendOtp(userVo), HttpStatus.OK);
     }
 
     @PostMapping("/validateOtp")

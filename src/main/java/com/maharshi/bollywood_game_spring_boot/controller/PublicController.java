@@ -2,7 +2,7 @@ package com.maharshi.bollywood_game_spring_boot.controller;
 
 
 import com.maharshi.bollywood_game_spring_boot.dto.Response;
-import com.maharshi.bollywood_game_spring_boot.model.User;
+import com.maharshi.bollywood_game_spring_boot.model.UserVo;
 import com.maharshi.bollywood_game_spring_boot.service.RegisterUserService;
 import com.maharshi.bollywood_game_spring_boot.service.UserDetailsServiceImp;
 import com.maharshi.bollywood_game_spring_boot.utils.JwtUtil;
@@ -54,15 +54,12 @@ public class PublicController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Response> login(@RequestBody User user, HttpServletResponse response) {
+    public ResponseEntity<Response> login(@RequestBody UserVo userVo, HttpServletResponse response) {
         try {
             this.authenticationManager
-                    .authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
-            String username = this.userDetailsServiceImp.loadUserByUsername(user.getUsername()).getUsername();
+                    .authenticate(new UsernamePasswordAuthenticationToken(userVo.getUsername(), userVo.getPassword()));
+            String username = this.userDetailsServiceImp.loadUserByUsername(userVo.getUsername()).getUsername();
             String jwt = "Bearer" + jwtUtil.generateToken(username);
-
-
-
             ResponseCookie jwtCookie = ResponseCookie.from("Authentication", jwt)
                     .httpOnly(true)
                     .secure(false) // Use this if your app is served over HTTPS
@@ -71,7 +68,6 @@ public class PublicController {
                     .sameSite("Strict") // SameSite attribute for CSRF protection
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
-
             return new ResponseEntity<>(new Response("Valid User Name and password", username, true), HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();

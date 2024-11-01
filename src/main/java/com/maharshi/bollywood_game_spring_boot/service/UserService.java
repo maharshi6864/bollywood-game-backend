@@ -1,12 +1,12 @@
 package com.maharshi.bollywood_game_spring_boot.service;
 
-import com.maharshi.bollywood_game_spring_boot.model.User;
+import com.maharshi.bollywood_game_spring_boot.model.UserVo;
 
 public interface UserService {
 
-  void insertUser(User user);
+  void insertUser(UserVo userVo);
 
-  User findByUserName(String username);
+  UserVo findByUserName(String username);
 
-  User getCurrentUser();
+  UserVo getCurrentUser();
 }

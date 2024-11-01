@@ -1,7 +1,7 @@
 package com.maharshi.bollywood_game_spring_boot.service;
 
 
-import com.maharshi.bollywood_game_spring_boot.model.User;
+import com.maharshi.bollywood_game_spring_boot.model.UserVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,12 +25,12 @@ public class UserDetailsServiceImp implements AuthenticationProvider, UserDetail
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    User user = this.userService.findByUserName(username);
-    if (user != null) {
+    UserVo userVo = this.userService.findByUserName(username);
+    if (userVo != null) {
       return org.springframework.security.core.userdetails.User.builder()
-          .username(user.getUsername())
-          .password(user.getPassword())
-          .roles(user.getRole())
+          .username(userVo.getUsername())
+          .password(userVo.getPassword())
+          .roles(userVo.getRole())
           .build();
 
     }

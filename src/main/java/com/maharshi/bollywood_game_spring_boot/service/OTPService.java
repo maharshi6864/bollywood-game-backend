@@ -4,15 +4,15 @@ package com.maharshi.bollywood_game_spring_boot.service;
 
 
 import com.maharshi.bollywood_game_spring_boot.model.OTPVo;
-import com.maharshi.bollywood_game_spring_boot.model.User;
+import com.maharshi.bollywood_game_spring_boot.model.UserVo;
 
 import java.util.Map;
 
 public interface OTPService {
 
-    Map<?, ?> sendOtpForRegistration(User user);
+    Map<?, ?> sendOtpForRegistration(UserVo userVo);
 
-    Map<?, ?> resendOtpForRegistration(User user);
+    Map<?, ?> resendOtpForRegistration(UserVo userVo);
 
     String getOtpExpriration(String username);
 

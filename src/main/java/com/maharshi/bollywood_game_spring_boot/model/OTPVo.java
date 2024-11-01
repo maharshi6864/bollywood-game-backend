@@ -18,7 +18,7 @@ public class OTPVo {
 
     @JoinColumn(name = "userId")
     @ManyToOne
-    private User user;
+    private UserVo userVo;
 
     private Instant expireDate;
 
@@ -38,12 +38,12 @@ public class OTPVo {
         this.otp = otp;
     }
 
-    public User getUser() {
-        return user;
+    public UserVo getUser() {
+        return userVo;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUser(UserVo userVo) {
+        this.userVo = userVo;
     }
 
     public Instant getExpireDate() {
