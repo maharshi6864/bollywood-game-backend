@@ -2,7 +2,9 @@ package com.maharshi.bollywood_game_spring_boot.controller;
 
 
 import com.maharshi.bollywood_game_spring_boot.dto.Response;
+import com.maharshi.bollywood_game_spring_boot.dto.SocketResponse;
 import com.maharshi.bollywood_game_spring_boot.model.UserVo;
+import com.maharshi.bollywood_game_spring_boot.service.RedisService;
 import com.maharshi.bollywood_game_spring_boot.service.RegisterUserService;
 import com.maharshi.bollywood_game_spring_boot.service.UserDetailsServiceImp;
 import com.maharshi.bollywood_game_spring_boot.utils.JwtUtil;
@@ -12,14 +14,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
-public class PublicController {
+public class AuthenticationController {
 
     @Autowired
     private RegisterUserService registerUserService;
@@ -36,9 +40,25 @@ public class PublicController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private RedisService redisService;
+
     @GetMapping("/logoutt")
-    public ResponseEntity<Response> serverHealthCheck(HttpServletResponse response)
-    {
+    public ResponseEntity<Response> serverHealthCheck(HttpServletResponse response) {
+            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // Set the user offline in Redis
+        redisService.delete(currentUsername);
+
+        // Send a WebSocket message to notify the frontend
+        messagingTemplate.convertAndSend(
+                "/topic/status",
+                new SocketResponse("Offline",currentUsername, "status")
+        );
+
         // Create a cookie with the same name to delete it
         ResponseCookie deleteCookie = ResponseCookie.from("Authentication", "")
                 .httpOnly(true)
@@ -50,7 +70,11 @@ public class PublicController {
 
         // Add the delete cookie to the response
         response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
-        return new ResponseEntity<Response>(new Response("Logout Successfully",null,true),HttpStatus.OK);
+
+        return new ResponseEntity<>(
+                new Response("Logout Successfully", null, true),
+                HttpStatus.OK
+        );
     }
 
     @PostMapping("/login")

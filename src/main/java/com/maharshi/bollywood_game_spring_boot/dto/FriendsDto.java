@@ -16,14 +16,12 @@ public class FriendsDto {
 
     private String friendName;
 
-    private int matchesWonTogether;
+    private int friendPoints;
 
     private int matchesPlayedTogether;
 
     private int matchesPlayedByFriend;
 
-    private int matchesWonByFriend;
-
-    private boolean online  ;
+    private String status;
 
 }

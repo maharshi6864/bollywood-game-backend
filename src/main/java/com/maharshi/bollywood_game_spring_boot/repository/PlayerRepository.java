@@ -16,4 +16,6 @@ public interface PlayerRepository extends CrudRepository<PlayerVo, Integer> {
     List<PlayerVo> searchThroughString(@Param("searchString") String searchString);
 
     PlayerVo findByPlayerName(String playerName);
+
+    PlayerVo findById(int id);
 }

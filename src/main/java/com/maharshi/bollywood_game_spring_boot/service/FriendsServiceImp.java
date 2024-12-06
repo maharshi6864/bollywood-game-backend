@@ -5,8 +5,10 @@ import com.maharshi.bollywood_game_spring_boot.model.FriendVo;
 import com.maharshi.bollywood_game_spring_boot.model.PlayerVo;
 import com.maharshi.bollywood_game_spring_boot.model.UserVo;
 import com.maharshi.bollywood_game_spring_boot.repository.FriendRepository;
+import com.maharshi.bollywood_game_spring_boot.repository.PlayerRepository;
 import com.maharshi.bollywood_game_spring_boot.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @Transactional
 public class FriendsServiceImp implements FriendsService {
@@ -30,7 +33,10 @@ public class FriendsServiceImp implements FriendsService {
     private SimpMessagingTemplate simpMessagingTemplate;
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private RedisService redisService;
+
+    @Autowired
+    private PlayerRepository playerRepository;
 
 
     @Override
@@ -42,16 +48,14 @@ public class FriendsServiceImp implements FriendsService {
 
         for (FriendVo friendVo : friendsVoList) {
             // Check if the friend is online by querying Redis for the friend's player name
-            boolean isOnline = redisTemplate.opsForValue().get(friendVo.getFriendInfo().getPlayerName()) != null;
-
+            String onlineStatus = redisService.get((String) friendVo.getFriendInfo().getPlayerName(), String.class);
             FriendsDto friendsDto = new FriendsDto(
                     friendVo.getId(),
                     friendVo.getFriendInfo().getPlayerName(),
-                    friendVo.getMatchesWonTogether(),
                     friendVo.getMatchesPlayedTogether(),
                     friendVo.getFriendInfo().getMatchesPlayed(),
-                    friendVo.getFriendInfo().getMatchesWon(),
-                    isOnline // Set online status
+                    friendVo.getFriendInfo().getPoints(),
+                    onlineStatus == null ? "Offline" : onlineStatus // Set online status
             );
             friendsDtoList.add(friendsDto);
         }
@@ -67,12 +71,21 @@ public class FriendsServiceImp implements FriendsService {
             PlayerVo playerVo = this.userService.findByUserName(this.userService.getCurrentUser().getUsername())
                     .getPlayerVo();
             friendVo = new FriendVo();
-            friendVo.setFriendInfo(new PlayerVo(playerDto.getId(), null, 0, 0));
+            PlayerVo friendInfo = playerRepository.findById(playerDto.getId());
+            friendVo.setFriendInfo(friendInfo);
             friendVo.setPlayerVo(playerVo);
             friendVo.setMatchesPlayedTogether(0);
-            friendVo.setMatchesWonTogether(0);
             FriendVo friendVo1 = friendRepository.save(friendVo);
-            return new Response("success", friendVo1, true);
+            String onlineStatus = (redisService.get((String) playerDto.getPlayerName(), String.class) == null) ? "Offline" : "Online";
+            FriendsDto friendsDto = new FriendsDto(
+                    friendVo1.getId(),
+                    friendVo1.getFriendInfo().getPlayerName(),
+                    friendVo1.getMatchesPlayedTogether(),
+                    friendVo1.getFriendInfo().getMatchesPlayed(),
+                    friendVo1.getFriendInfo().getPoints(),
+                    onlineStatus // Set online status
+            );
+            return new Response("success", friendsDto, true);
         } catch (Exception e) {
             return new Response("failed", null, false);
         }
@@ -80,15 +93,12 @@ public class FriendsServiceImp implements FriendsService {
 
     @Override
     public Response removefriend(int id) {
-        try
-        {
-            FriendVo friendVo=new FriendVo();
+        try {
+            FriendVo friendVo = new FriendVo();
             friendVo.setId(id);
             this.friendRepository.delete(friendVo);
             return new Response("success", null, true);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             return new Response("failed", null, false);
         }
 

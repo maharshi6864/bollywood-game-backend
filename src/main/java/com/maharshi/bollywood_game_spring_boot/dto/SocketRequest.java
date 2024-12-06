@@ -7,11 +7,11 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SocketRequest {
+public class SocketRequest<T> {
 
     private String message;
 
-    private Object body;
+    private T body;
 
     private String type;
 

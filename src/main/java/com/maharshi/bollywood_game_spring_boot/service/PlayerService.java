@@ -10,4 +10,10 @@ public interface PlayerService {
     PlayerVo savePLayer(PlayerVo playerVo);
 
     Response searchThroughString(String searchString);
+
+    PlayerVo getCurrentPlayer();
+
+    void updatePlayerStatus(String playerName,String status,String gameId);
+
+    String getPlayerStatus(String playerName);
 }

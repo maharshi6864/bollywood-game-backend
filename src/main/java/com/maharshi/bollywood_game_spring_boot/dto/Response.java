@@ -1,5 +1,10 @@
 package com.maharshi.bollywood_game_spring_boot.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+
 public class Response {
 
     private String message;

@@ -1,6 +1,8 @@
 package com.maharshi.bollywood_game_spring_boot.service;
 
 
+import com.maharshi.bollywood_game_spring_boot.dto.Response;
+import com.maharshi.bollywood_game_spring_boot.dto.UserDto;
 import com.maharshi.bollywood_game_spring_boot.model.UserVo;
 import com.maharshi.bollywood_game_spring_boot.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -36,6 +38,17 @@ public class UserServiceImp implements UserService {
            System.out.println(e);
            return null;
        }
+    }
+
+    @Override
+    public Response getUserDetails() {
+        UserVo userVo=this.userRepository.findByUsername(SecurityContextHolder
+                .getContext().getAuthentication().getName()).get(0);
+        String inAGame=userVo.getPlayerVo().getGameVo()!=null?"INAGAME":"NOTINAGAME";
+        UserDto userDto=new UserDto(userVo.getUsername(),userVo.getEmail(),userVo.getPlayerVo().getId(),
+                userVo.getPlayerVo().getPlayerName(),userVo.getPlayerVo().getMatchesPlayed(),
+                userVo.getPlayerVo().getPoints(),inAGame);
+        return new Response("sucess",userDto,true);
     }
 
 }

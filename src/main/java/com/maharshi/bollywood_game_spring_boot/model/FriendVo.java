@@ -29,7 +29,4 @@ public class FriendVo {
     @Column(name = "matches_played_together")
     private int matchesPlayedTogether;
 
-    @Column(name = "matches_won_together")
-    private int matchesWonTogether;
-
 }

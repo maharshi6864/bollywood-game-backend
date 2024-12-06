@@ -24,7 +24,11 @@ public class PlayerVo {
     @Column(name = "matchesPlayed")
     private int matchesPlayed;
 
-    @Column(name = "matchesWon")
-    private int matchesWon;
+    @Column(name = "points")
+    private int points;
+
+    @JoinColumn(name = "gameVo")
+    @ManyToOne
+    private GameVo gameVo;
 
 }
