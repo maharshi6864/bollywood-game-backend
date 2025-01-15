@@ -47,7 +47,6 @@ public class GameController {
     @PostMapping("/gameRequestReply")
     public ResponseEntity<Response> gameRequestDeclined(@RequestBody PlayerStatusDto playerStatusDto) {
         Response response = this.gameService.gameRequestReply(playerStatusDto);
-
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

@@ -48,14 +48,14 @@ public class FriendsServiceImp implements FriendsService {
 
         for (FriendVo friendVo : friendsVoList) {
             // Check if the friend is online by querying Redis for the friend's player name
-            String onlineStatus = redisService.get((String) friendVo.getFriendInfo().getPlayerName(), String.class);
+            PlayerStatusDto onlineStatus = redisService.get((String) friendVo.getFriendInfo().getPlayerName(), PlayerStatusDto.class);
             FriendsDto friendsDto = new FriendsDto(
                     friendVo.getId(),
                     friendVo.getFriendInfo().getPlayerName(),
                     friendVo.getMatchesPlayedTogether(),
                     friendVo.getFriendInfo().getMatchesPlayed(),
                     friendVo.getFriendInfo().getPoints(),
-                    onlineStatus == null ? "Offline" : onlineStatus // Set online status
+                    onlineStatus == null ? "Offline" : onlineStatus.getStatus() // Set online status
             );
             friendsDtoList.add(friendsDto);
         }

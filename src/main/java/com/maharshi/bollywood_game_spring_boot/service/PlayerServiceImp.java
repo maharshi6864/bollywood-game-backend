@@ -97,34 +97,46 @@ public class PlayerServiceImp implements PlayerService {
     public void updatePlayerStatus(String playerName, String status, String gameId) {
         switch (status) {
             case "Online" -> {
-                if (redisService.get(playerName, PlayerStatusDto.class) == null || redisService.get(playerName, String.class) != null) {
-                    redisService.set(playerName, status, null);
-                    SocketResponse response = new SocketResponse(status, playerName, "status");
-                    messagingTemplate.convertAndSend("/topic/general", response);
+                if (redisService.get(playerName, PlayerStatusDto.class) == null) {
+                PlayerStatusDto playerStatusDto = new PlayerStatusDto(playerName, status, gameId);
+                redisService.set(playerName, playerStatusDto, null);
+                SocketResponse response = new SocketResponse(status, playerName, "status");
+                messagingTemplate.convertAndSend("/topic/general", response);
                 }
             }
             case "Offline" -> {
-                if (redisService.get(playerName, String.class) != null) {
-                    SocketResponse response = new SocketResponse(status, playerName, "status");
-                    messagingTemplate.convertAndSend("/topic/general", response);
-                }
-                if (redisService.get(playerName, PlayerStatusDto.class) != null) {
-                    PlayerStatusDto playerStatusDto = redisService.get(playerName, PlayerStatusDto.class);
-                    playerStatusDto.setStatus("Offline");
-                    GameDto gameDto = (GameDto) redisService.get(playerStatusDto.getGameId(), GameDto.class);
-                    for (InGamePlayerDto inGamePlayerDto : gameDto.getInGamePlayerDtoList()) {
-                        if (inGamePlayerDto.getPlayerName().equals(playerName)) {
-                            inGamePlayerDto.setStatus(status);
+                PlayerStatusDto playerStatusDto = redisService.get(playerName, PlayerStatusDto.class);
+
+                if (playerStatusDto != null) {
+                    if (playerStatusDto.getGameId() != null) {
+                        GameDto gameDto = redisService.get(playerStatusDto.getGameId(), GameDto.class);
+                        if (gameDto != null) {
+                            for (InGamePlayerDto inGamePlayerDto : gameDto.getInGamePlayerDtoList()) {
+                                if (inGamePlayerDto.getPlayerName().equals(playerName)) {
+                                    inGamePlayerDto.setStatus("Offline");
+                                    break;
+                                }
+                            }
+                            // Update the game in Redis
+                            redisService.set(playerStatusDto.getGameId(), gameDto, null);
+
+                            // Notify game-specific topic
+                            SocketResponse gameResponse = new SocketResponse("Offline", playerStatusDto, "playerInGameStatus");
+                            messagingTemplate.convertAndSend("/topic/game/" + playerStatusDto.getGameId(), gameResponse);
+
+                            // Notify general topic
+                            SocketResponse generalResponse = new SocketResponse("Offline", playerName, "status");
+                            messagingTemplate.convertAndSend("/topic/general", generalResponse);
+
+                            // Handle someone leaving the game
+                            this.someOneLeftTheGame(gameDto);
                         }
+                    } else {
+                        // Player is not associated with any game, update and notify general topic
+                        playerStatusDto.setStatus("Offline");
+                        SocketResponse generalResponse = new SocketResponse("Offline", playerName, "status");
+                        messagingTemplate.convertAndSend("/topic/general", generalResponse);
                     }
-                    redisService.set(playerStatusDto.getGameId(), gameDto, null);
-                    SocketResponse response1 = new SocketResponse(status, playerStatusDto
-                            , "playerInGameStatus");
-                    messagingTemplate.convertAndSend("/topic/game/" + playerStatusDto.getGameId()
-                            , response1);
-                    SocketResponse response = new SocketResponse(status, playerName, "status");
-                    messagingTemplate.convertAndSend("/topic/general", response);
-                    this.someOneLeftTheGame(gameDto);
                 }
             }
             case "Host", "In Game" -> {
